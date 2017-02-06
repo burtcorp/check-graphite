@@ -31,6 +31,8 @@ module CheckGraphite
     end
 
     def projected_value(datapoints)
+      validate_options
+
       ys, xs = datapoints.transpose
       lr = Regression::Linear.new(xs, ys)
       future = CheckGraphite.attime(options.timeframe, xs[-1])
@@ -50,6 +52,12 @@ module CheckGraphite
     end
 
     private
+
+    def validate_options
+      if options.processor.nil? && !options.p_threshold.nil?
+        raise '--p-threshold without --projection'
+      end
+    end
 
     def is_good_p?(p)
       options.p_threshold.nil? || p.nan? || p >= options.p_threshold

@@ -24,6 +24,7 @@ check_graphite accepts the following options:
 * `-t`: timeout after which the metric should be considered unknown
 * `--ignore-missing`: return `OK` when the metric doesn't exist yet e.g. errors have not occurred
 * `--projection`: Warn on a value linearly extrapolated into the future, defaults to "2days"
+* `--p-threshold`: Return unknown unless p-value exceeds the given value 0-1
 
 ## How it works
 
