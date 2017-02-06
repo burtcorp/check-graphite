@@ -108,9 +108,9 @@ describe 'when invoking graphite with --projection' do
   context 'given no --p-threshold' do
     let(:options) { ['--projection', '5min'] }
 
-    it 'outputs value, projection interval and p-value' do
+    it 'outputs value formatted to 3 significant digits, projection interval and p-value' do
       c = CheckGraphite::Command.new
-      STDOUT.should_receive(:puts).with(match(/ze-name.*in 5min.*p-value=0.9/))
+      STDOUT.should_receive(:puts).with(match(/ze-name=18.8 in 5min.*p-value=0.9/))
       lambda { c.run }.should raise_error SystemExit
     end
   end
@@ -118,9 +118,9 @@ describe 'when invoking graphite with --projection' do
   context 'given a low p-threshold' do
     let(:options) { ['--projection', '5min', '--p-threshold', '0.3'] }
 
-    it 'outputs value, projection interval and p-value' do
+    it 'outputs value formatted to 3 significant digits, projection interval and p-value' do
       c = CheckGraphite::Command.new
-      STDOUT.should_receive(:puts).with(match(/ze-name.*in 5min.*p-value=0.9/))
+      STDOUT.should_receive(:puts).with(match(/ze-name=18.8 in 5min.*p-value=0.9/))
       lambda { c.run }.should raise_error SystemExit
     end
   end
@@ -130,7 +130,7 @@ describe 'when invoking graphite with --projection' do
 
     it 'gives unknown status and says p-value is too low' do
       c = CheckGraphite::Command.new
-      STDOUT.should_receive(:puts).with(match(/UNKNOWN.*ze-name.*.*0.981 < 0.99/))
+      STDOUT.should_receive(:puts).with(match(/UNKNOWN: No projection on ze-name.*.*0.981 < 0.99/))
       lambda { c.run }.should raise_error SystemExit
     end
   end
