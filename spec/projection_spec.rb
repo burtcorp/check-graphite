@@ -1,6 +1,27 @@
 require 'check_graphite/projection'
 require 'nagios_check'
 
+describe 'CheckGraphite::Projection.to_s_signif_digits' do
+  it 'nan is expressed as "undefined"' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(Float::NAN)).to eq('undefined')
+  end
+  it 'formats small floats with 3 significant digits' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(1.2345677)).to eq('1.23')
+  end
+  it 'formats small floats with 3 significant digits, rounding 0.5 up' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(1.235)).to eq('1.24')
+  end
+  it 'formats large floats with 3 significant digits' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(1334999.0)).to eq('1330000.0')
+  end
+  it 'formats 1.0 as 1.0 to show it is a float despite trailing zero not being significant' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(1.0)).to eq('1.0')
+  end
+  it 'formats really small float as decimal, defeating rubys urge to print anything smaller than 1e-4 in engineering notation' do
+    expect(CheckGraphite::Projection.to_s_signif_digits(0.000002345678)).to eq('0.00000235')
+  end
+end
+
 describe CheckGraphite::Projection do
   let :check do
     Class.new do
