@@ -41,6 +41,16 @@ describe CheckGraphite::Projection do
     it ['--p-threshold', '0.75'] { should eq(0.75) }
     it ['--p-threshold', '2'] { expect { subject }.to raise_error(/0 <=.*2.*<= 1/) }
     it ['--p-threshold', 'foo'] { expect { subject }.to raise_error(/float/) }
+
+    describe 'when passing --p-threshold without' do
+      it 'should fail with error saying you need to give --projection' do
+        expect {
+          check.prepare
+          check.send(:parse_options, ['--p-threshold', '0.75'])
+          check.projected_value([[10,0], [9,1], [8,2]])
+        }.to raise_error(/--projection/)
+      end
+    end
   end
 
   describe 'when looking at the primary value' do
