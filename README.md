@@ -16,6 +16,7 @@ check_graphite accepts the following options:
 * `-H` or `--endpoint`: the graphite HTTP endpoint which can be queried
 * `-M` or `--metric`: the metric expression which will be queried, it can be an expression
 * `-F` or `--from`: time frame for which to query metrics, defaults to "30seconds"
+* `--to`: will exclude the time frame's worth of recent data
 * `--minimum`: require a minimum interval for returned data; if actual datapoints don't span interval, do UNKNOWN
 * `-N` or `--name`: name to give to the metric, defaults to "value"
 * `-U` or `--username`: username used for basic authentication

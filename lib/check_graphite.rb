@@ -14,6 +14,7 @@ module CheckGraphite
     on "--endpoint ENDPOINT", "-H ENDPOINT", :mandatory
     on "--metric METRIC", "-M METRIC", :mandatory
     on "--from TIMEFRAME", "-F TIMEFRAME", :default => "30seconds"
+    on "--to TIMEFRAME", :default => nil
     on "--minimum TIMEFRAME", :default => nil
     on "--name NAME", "-N NAME", :default => :value
     on "--username USERNAME", "-U USERNAME"
@@ -29,7 +30,9 @@ module CheckGraphite
     enable_timeout
 
     def check
-      uri = URI(URI.encode("#{options.endpoint}?target=#{options.metric}&from=-#{options.from}&format=json"))
+      prefix = "#{options.endpoint}?target=#{options.metric}&from=-#{options.from}"
+      prefix += "&until=-#{options.to}" if options.to
+      uri = URI(URI.encode("#{prefix}&format=json"))
       req = Net::HTTP::Get.new(uri.request_uri)
 
       # use basic auth if username is set
