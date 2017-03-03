@@ -18,9 +18,13 @@ describe CheckGraphite::Command do
   end
 
   describe "it should make http requests and return data" do
+    let :reply do
+      '[{"target": "default.test.boottime", "datapoints": [[1.0, 1339512060], [2.0, 1339512120], [6.0, 1339512180], [7.0, 1339512240]]}]'
+    end
+
     before do
       FakeWeb.register_uri(:get, "http://your.graphite.host/render?target=collectd.somebox.load.load.midterm&from=-30seconds&format=json",
-                           :body => '[{"target": "default.test.boottime", "datapoints": [[1.0, 1339512060], [2.0, 1339512120], [6.0, 1339512180], [7.0, 1339512240]]}]',
+                           :body => reply,
                            :content_type => "application/json")
     end
 
@@ -75,6 +79,16 @@ describe CheckGraphite::Command do
 
     it "should honour dropfirst and droplast together" do
       stub_const("ARGV", %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm --dropfirst 1 --droplast 1 })
+      c = CheckGraphite::Command.new
+      STDOUT.should_receive(:puts).with("OK: value=4.0|value=4.0;;;;")
+      lambda { c.run }.should raise_error SystemExit
+    end
+
+    it "should allow setting Grahite until optime" do
+      FakeWeb.register_uri(:get, "http://your.graphite.host/render?target=collectd.somebox.load.load.midterm&from=-30seconds&until=-10seconds&format=json",
+                           :body => reply,
+                           :content_type => "application/json")
+      stub_const("ARGV", %w{ -H http://your.graphite.host/render --to 10seconds -M collectd.somebox.load.load.midterm })
       c = CheckGraphite::Command.new
       STDOUT.should_receive(:puts).with("OK: value=4.0|value=4.0;;;;")
       lambda { c.run }.should raise_error SystemExit
