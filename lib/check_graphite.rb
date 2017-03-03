@@ -1,3 +1,4 @@
+require "attime"
 require "nagios_check"
 require "json"
 require "net/https"
@@ -13,6 +14,7 @@ module CheckGraphite
     on "--endpoint ENDPOINT", "-H ENDPOINT", :mandatory
     on "--metric METRIC", "-M METRIC", :mandatory
     on "--from TIMEFRAME", "-F TIMEFRAME", :default => "30seconds"
+    on "--minimum TIMEFRAME", :default => nil
     on "--name NAME", "-N NAME", :default => :value
     on "--username USERNAME", "-U USERNAME"
     on "--password PASSWORD", "-P PASSWORD"
@@ -56,15 +58,27 @@ module CheckGraphite
         (datapoints.size - options.dropfirst - options.droplast)
       )
 
-      # Remove NULL values. Return UNKNOWN if there's nothing left.
       datapoints.reject! { |v| v.first.nil? }
-      raise "no valid datapoints" if datapoints.size == 0
+      unless sufficient_data?(datapoints)
+        store_value options.name, nil
+        store_message "Not enough valid datapoints"
+        return
+      end
 
       processor = options.processor || method(:present_value)
       processor.call(datapoints)
     end
 
     private
+
+    def sufficient_data?(datapoints)
+      return false if datapoints.size == 0
+      return true unless options.minimum
+      earliest = Time.at(datapoints[0].last)
+      latest = Time.at(datapoints[-1].last)
+      expected_start = CheckGraphite.attime("-#{options.minimum}", latest)
+      return earliest < expected_start
+    end
 
     def present_value(datapoints)
       sum = datapoints.reduce(0.0) {|acc, v| acc + v.first }

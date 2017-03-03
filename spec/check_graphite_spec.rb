@@ -45,6 +45,20 @@ describe CheckGraphite::Command do
       lambda { c.run }.should raise_error SystemExit
     end
 
+    it "should return UNKNOWN when data does not span minimum interval" do
+      stub_const("ARGV", %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -c 0 --minimum 200sec })
+      c = CheckGraphite::Command.new
+      STDOUT.should_receive(:puts).with(/UNKNOWN: Not enough valid datapoints/)
+      lambda { c.run }.should raise_error SystemExit
+    end
+
+    it "should operate normally when returned data matches minimum interval" do
+      stub_const("ARGV", %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -c 0 --minimum 170sec })
+      c = CheckGraphite::Command.new
+      STDOUT.should_receive(:puts).with("CRITICAL: value=4.0|value=4.0;;;;")
+      lambda { c.run }.should raise_error SystemExit
+    end
+
     it "should honour dropfirst" do
       stub_const("ARGV", %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm --dropfirst 1 })
       c = CheckGraphite::Command.new
@@ -114,7 +128,7 @@ describe CheckGraphite::Command do
     it "should be unknown" do
       stub_const("ARGV", %w{ -H http://your.graphite.host/render -M all.values.null })
       c = CheckGraphite::Command.new
-      STDOUT.should_receive(:puts).with(/UNKNOWN: INTERNAL ERROR: (RuntimeError: )?no valid datapoints/)
+      STDOUT.should_receive(:puts).with(/UNKNOWN: Not enough valid datapoints/)
       lambda { c.run }.should raise_error SystemExit
     end
   end
